@@ -42,6 +42,16 @@ const dummyVerifications = [
     department: 'Computer Science',
     verificationStatus: 'verified',
     idCardUrl: 'https://via.placeholder.com/300x200?text=ID+Card'
+  },
+  {
+    $id: 'v2',
+    userId: 'student-2',
+    fullName: 'Jane Smith',
+    regNo: 'CS2023045',
+    department: 'Information Technology',
+    verificationStatus: 'pending',
+    idCardUrl: 'https://via.placeholder.com/400x300?text=Jane+Smith+ID',
+    createdAt: new Date().toISOString()
   }
 ];
 
