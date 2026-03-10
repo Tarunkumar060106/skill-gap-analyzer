@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { getPendingVerifications, reviewVerification } from '../services/api';
 import { Check, X, ExternalLink, ShieldAlert, UserCheck } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function MentorVerifications() {
   const [pending, setPending] = useState([]);
@@ -33,124 +37,133 @@ export default function MentorVerifications() {
   };
 
   return (
-    <div className="card glass-panel" style={{ maxWidth: 1200, margin: '0 auto' }}>
-      <div className="dashboard-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '2rem' }}>
-        <div className="flex items-center gap-3">
-           <ShieldAlert className="text-pending" size={32} />
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between border-b border-border/50 pb-6">
+        <div className="flex items-center gap-4">
+           <div className="p-3 bg-orange-500/10 text-orange-400 rounded-full">
+             <ShieldAlert size={32} />
+           </div>
            <div>
-              <h2 style={{ fontWeight: 600 }}>Identity Verification Center</h2>
-              <p className="text-muted">Review and approve student identification documents</p>
+              <h2 className="text-2xl font-bold">Identity Verification Center</h2>
+              <p className="text-muted-foreground">Review and approve student identification documents</p>
            </div>
         </div>
         
-        <div className="flex gap-2">
-           <button 
+        <div className="flex gap-2 bg-secondary/30 p-1 rounded-lg border border-border/50">
+           <Button 
+             variant={filter === 'pending' ? 'default' : 'ghost'} 
              onClick={() => setFilter('pending')} 
-             className={filter === 'pending' ? 'btn-primary' : 'btn-secondary'}
-             style={{ fontSize: '0.875rem' }}
+             size="sm"
            >
              Pending ({pending.length})
-           </button>
-           <button 
+           </Button>
+           <Button 
+             variant={filter === 'all' ? 'default' : 'ghost'} 
              onClick={() => setFilter('all')} 
-             className={filter === 'all' ? 'btn-primary' : 'btn-secondary'}
-             style={{ fontSize: '0.875rem' }}
+             size="sm"
            >
              History
-           </button>
+           </Button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center py-20">
-           <div className="spinner mb-4" style={{ width: 40, height: 40, border: '4px solid #f3f3f3', borderTop: '4px solid var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
-           <p className="text-muted">Securely fetching documents...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-           {pending.length === 0 ? (
-             <div className="text-center py-20 bg-tertiary" style={{ borderRadius: 8, border: '1px dashed var(--border-color)' }}>
-                <UserCheck size={48} className="text-success mx-auto mb-4" />
-                <h3>All Caught Up!</h3>
-                <p className="text-muted">There are no student identities waiting for review.</p>
-             </div>
-           ) : (
-             <div className="table-container">
-               <table style={{ border: 'none' }}>
-                 <thead>
-                   <tr style={{ background: 'var(--bg-tertiary)' }}>
-                     <th>Student Details</th>
-                     <th>ID Document</th>
-                     <th>Request Date</th>
-                     <th>Status</th>
-                     <th style={{ textAlign: 'right' }}>Actions</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {pending.map((p) => (
-                     <tr key={p.$id || p.userId}>
-                       <td>
-                          <div className="flex flex-col">
-                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.fullName}</span>
-                             <span className="text-xs text-muted">{p.regNo} • {p.department}</span>
-                          </div>
-                       </td>
-                       <td>
-                          <button 
-                            onClick={() => window.open(p.idCardUrl, '_blank')}
-                            className="btn-secondary py-1 px-3 flex items-center gap-2"
-                            style={{ fontSize: '0.75rem', fontWeight: 600 }}
-                          >
-                             <ExternalLink size={14} /> VIEW DOC
-                          </button>
-                       </td>
-                       <td>
-                          <span className="text-sm text-secondary">
-                             {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Today'}
-                          </span>
-                       </td>
-                       <td>
-                          <span className={`badge badge-${p.verificationStatus}`}>
-                             {p.verificationStatus}
-                          </span>
-                       </td>
-                       <td style={{ textAlign: 'right' }}>
-                          <div className="flex justify-end gap-2">
-                             <button 
-                               onClick={() => handleReview(p.userId, 'verified')}
-                               className="btn-success flex items-center gap-1"
-                               style={{ padding: '4px 12px', borderRadius: 4, background: '#eef9f2', border: '1px solid #ccebd7' }}
-                               title="Approve Identity"
-                             >
-                                <Check size={16} /> <span style={{ fontSize: '0.8rem' }}>APPROVE</span>
-                             </button>
-                             <button 
-                               onClick={() => handleReview(p.userId, 'rejected')}
-                               className="btn-danger flex items-center gap-1"
-                               style={{ padding: '4px 12px', borderRadius: 4, background: '#fdf3f4', border: '1px solid #fac2c5' }}
-                               title="Reject Identity"
-                             >
-                                <X size={16} /> <span style={{ fontSize: '0.8rem' }}>REJECT</span>
-                             </button>
-                          </div>
-                       </td>
-                     </tr>
-                   ))}
-                 </tbody>
-               </table>
-             </div>
-           )}
-        </div>
-      )}
+      <Card className="bg-secondary/20 border-border/50">
+        <CardContent className="pt-6">
+          {loading ? (
+            <div className="text-center py-20 flex flex-col items-center">
+               <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin mb-4"></div>
+               <p className="text-muted-foreground border-primary">Securely fetching documents...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+               {pending.length === 0 ? (
+                 <div className="text-center py-20 bg-background/50 rounded-xl border border-dashed border-border/50">
+                    <UserCheck size={48} className="text-green-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2">All Caught Up!</h3>
+                    <p className="text-muted-foreground">There are no student identities waiting for review.</p>
+                 </div>
+               ) : (
+                 <div className="rounded-md border border-border/50 overflow-hidden">
+                   <Table>
+                     <TableHeader className="bg-secondary/30">
+                       <TableRow>
+                         <TableHead>Student Details</TableHead>
+                         <TableHead>ID Document</TableHead>
+                         <TableHead>Request Date</TableHead>
+                         <TableHead>Status</TableHead>
+                         <TableHead className="text-right">Actions</TableHead>
+                       </TableRow>
+                     </TableHeader>
+                     <TableBody>
+                       {pending.map((p) => (
+                         <TableRow key={p.$id || p.userId}>
+                           <TableCell>
+                              <div className="flex flex-col">
+                                 <span className="font-semibold text-foreground">{p.fullName}</span>
+                                 <span className="text-xs text-muted-foreground">{p.regNo} • {p.department}</span>
+                              </div>
+                           </TableCell>
+                           <TableCell>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 gap-2 font-semibold"
+                                onClick={() => window.open(p.idCardUrl, '_blank')}
+                              >
+                                 <ExternalLink size={14} /> VIEW DOC
+                              </Button>
+                           </TableCell>
+                           <TableCell className="text-muted-foreground text-sm">
+                              {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Today'}
+                           </TableCell>
+                           <TableCell>
+                              <Badge variant="outline" className="text-orange-400 border-orange-400/50 bg-orange-400/10">
+                                 {p.verificationStatus || 'Pending'}
+                              </Badge>
+                           </TableCell>
+                           <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                 <Button 
+                                   size="sm"
+                                   className="bg-green-600 hover:bg-green-700 text-white gap-1 h-8"
+                                   onClick={() => handleReview(p.userId, 'verified')}
+                                 >
+                                    <Check size={16} /> <span className="text-xs">APPROVE</span>
+                                 </Button>
+                                 <Button 
+                                   variant="destructive"
+                                   size="sm"
+                                   className="gap-1 h-8"
+                                   onClick={() => handleReview(p.userId, 'rejected')}
+                                 >
+                                    <X size={16} /> <span className="text-xs">REJECT</span>
+                                 </Button>
+                              </div>
+                           </TableCell>
+                         </TableRow>
+                       ))}
+                     </TableBody>
+                   </Table>
+                 </div>
+               )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Stats / Help Card */}
-      <div className="mt-8 grid grid-cols-2 gap-6">
-         <div className="card" style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', padding: '1rem' }}>
-            <h4 className="flex items-center gap-2 mb-2"><ShieldAlert size={16} /> Compliance Note</h4>
-            <p className="text-xs text-muted">
-               Please ensure the student's Registration Number matches the official university database records before approval. ID document must be clear and legible.
-            </p>
-         </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <Card className="bg-secondary/20 border-border/50">
+            <CardContent className="p-4 flex items-start gap-3">
+              <ShieldAlert size={20} className="text-primary mt-0.5 shrink-0" />
+              <div>
+                <h4 className="font-semibold mb-1">Compliance Note</h4>
+                <p className="text-sm text-muted-foreground">
+                   Please ensure the student's Registration Number matches the official university database records before approval. ID document must be clear and legible.
+                </p>
+              </div>
+            </CardContent>
+         </Card>
       </div>
     </div>
   );

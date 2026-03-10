@@ -6,54 +6,58 @@ export default function RestrictedDashboard() {
   const { user } = useAuth();
   
   return (
-    <div>
-      <div className="card glass-panel mb-6" style={{ background: 'rgba(245, 158, 11, 0.1)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-        <div className="flex items-center gap-4">
-          <AlertTriangle size={32} className="text-pending" />
-          <div>
-            <h3 className="mb-1" style={{ color: 'var(--pending)' }}>Verification Required</h3>
-            <p>You must verify your student identity to access skill tests and learning plans.</p>
-          </div>
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <Alert variant="warning" className="bg-orange-500/10 border-orange-500/30 text-orange-500">
+        <AlertTriangle className="h-5 w-5" />
+        <AlertTitle className="text-lg font-bold mb-1">Verification Required</AlertTitle>
+        <AlertDescription>
+          You must verify your student identity to access skill tests and learning plans.
+        </AlertDescription>
+      </Alert>
 
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {user?.verificationStatus === 'pending' ? (
-          <div className="card glass-panel text-center justify-center flex items-center flex-col py-10">
-            <Clock size={48} className="text-pending mb-4" />
-            <h3 className="mb-2">Review in Progress</h3>
-            <p className="text-muted">Your ID is currently being reviewed by mentors.</p>
-          </div>
+          <Card className="flex flex-col items-center justify-center text-center py-12 bg-secondary/20 border-border/50">
+            <Clock size={48} className="text-orange-400 mb-6" />
+            <h3 className="text-2xl font-bold mb-2">Review in Progress</h3>
+            <p className="text-muted-foreground">Your ID is currently being reviewed by mentors.</p>
+          </Card>
         ) : user?.verificationStatus === 'rejected' ? (
-          <div className="card glass-panel text-center justify-center flex items-center flex-col py-10">
-            <ShieldX size={48} className="text-error mb-4" />
-            <h3 className="mb-2 text-error">Verification Rejected</h3>
-            <p className="text-muted mb-4">Your uploaded ID was invalid. Please re-upload.</p>
-            <Link to="/verify" className="btn-primary">Re-upload ID</Link>
-          </div>
+          <Card className="flex flex-col items-center justify-center text-center py-12 bg-secondary/20 border-border/50">
+            <ShieldX size={48} className="text-destructive mb-6" />
+            <h3 className="text-2xl font-bold mb-2 text-destructive">Verification Rejected</h3>
+            <p className="text-muted-foreground mb-6">Your uploaded ID was invalid. Please re-upload.</p>
+            <Button asChild size="lg">
+              <Link to="/verify">Re-upload ID</Link>
+            </Button>
+          </Card>
         ) : (
-          <div className="card glass-panel text-center justify-center flex items-center flex-col py-10">
-            <UploadCloud size={48} className="text-accent mb-4" />
-            <h3 className="mb-2">Identity Unverified</h3>
-            <p className="text-muted mb-4">Upload your college ID to unlock features.</p>
-            <Link to="/verify" className="btn-primary">Upload ID Now</Link>
-          </div>
+          <Card className="flex flex-col items-center justify-center text-center py-12 bg-secondary/20 border-border/50">
+            <UploadCloud size={48} className="text-primary mb-6" />
+            <h3 className="text-2xl font-bold mb-2">Identity Unverified</h3>
+            <p className="text-muted-foreground mb-6">Upload your college ID to unlock features.</p>
+            <Button asChild size="lg">
+              <Link to="/verify">Upload ID Now</Link>
+            </Button>
+          </Card>
         )}
 
-        <div className="card glass-panel text-center justify-center flex items-center flex-col py-10">
-          <UserCircle size={48} className="text-secondary mb-4" style={{ color: 'var(--accent-secondary)' }} />
-          <h3 className="mb-2">Your Profile</h3>
-          <p className="text-muted mb-4">Complete your specific skills and career goals.</p>
-          <Link to="/profile" className="btn-secondary">Edit Profile</Link>
-        </div>
+        <Card className="flex flex-col items-center justify-center text-center py-12 bg-secondary/20 border-border/50">
+          <UserCircle size={48} className="text-purple-400 mb-6" />
+          <h3 className="text-2xl font-bold mb-2">Your Profile</h3>
+          <p className="text-muted-foreground mb-6">Complete your specific skills and career goals.</p>
+          <Button asChild variant="secondary" size="lg">
+            <Link to="/profile">Edit Profile</Link>
+          </Button>
+        </Card>
       </div>
 
-      <div className="mt-8">
-        <h3 className="mb-4">Restricted Features</h3>
-        <div className="grid grid-cols-3 opacity-50 pointer-events-none">
-           <div className="card glass-panel">Take Skill Test</div>
-           <div className="card glass-panel">Learning Plans</div>
-           <div className="card glass-panel">Skill Gap Analysis</div>
+      <div className="pt-8">
+        <h3 className="text-xl font-bold mb-6">Restricted Features</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-40 pointer-events-none">
+           <Card className="p-6 text-center bg-secondary/20 border-border/50 font-medium">Take Skill Test</Card>
+           <Card className="p-6 text-center bg-secondary/20 border-border/50 font-medium">Learning Plans</Card>
+           <Card className="p-6 text-center bg-secondary/20 border-border/50 font-medium">Skill Gap Analysis</Card>
         </div>
       </div>
     </div>

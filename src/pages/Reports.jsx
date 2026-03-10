@@ -1,6 +1,9 @@
 import { Filter, Download, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function Reports() {
   const { user } = useAuth();
@@ -14,54 +17,79 @@ export default function Reports() {
   ];
 
   return (
-    <div className="card glass-panel" style={{ maxWidth: 1200, margin: '0 auto' }}>
-      <div className="flex justify-between items-center mb-6 border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border/50 pb-6">
         <div>
-          <h2>Analytics & Reports</h2>
-          <p className="text-muted">Export detailed skill gap analysis data</p>
+          <h2 className="text-3xl font-bold mb-1">Analytics & Reports</h2>
+          <p className="text-muted-foreground">Export detailed skill gap analysis data</p>
         </div>
         
-        <div className="flex gap-4">
-          <button className="btn-secondary flex items-center gap-2"><Filter size={18} /> Filters</button>
-          <button className="btn-success flex items-center gap-2" style={{ background: 'rgba(16, 185, 129, 0.2)' }}><FileSpreadsheet size={18}/> Export Excel</button>
-          <button className="btn-primary flex items-center gap-2"><Download size={18}/> Export PDF</button>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" className="gap-2">
+            <Filter size={16} /> Filters
+          </Button>
+          <Button variant="outline" className="gap-2 text-green-500 border-green-500/30 hover:bg-green-500/10">
+            <FileSpreadsheet size={16}/> Export Excel
+          </Button>
+          <Button className="gap-2">
+            <Download size={16}/> Export PDF
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 mt-6">
-        <div className="card" style={{ background: 'var(--bg-secondary)' }}>
-          <h3 className="mb-4">Department Performance</h3>
-          <div style={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockDeptData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                <XAxis type="number" domain={[0, 100]} stroke="var(--text-muted)" />
-                <YAxis dataKey="name" type="category" stroke="var(--text-secondary)" width={120} />
-                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{background: 'var(--bg-secondary)', border: 'none'}} />
-                <Bar dataKey="avgScore" fill="var(--accent-primary)" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-secondary/20 border-border/50">
+          <CardHeader>
+            <CardTitle>Department Performance</CardTitle>
+            <CardDescription>Average scores across departments.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
+                <BarChart data={mockDeptData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                  <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" width={120} />
+                  <Tooltip cursor={{fill: 'hsl(var(--secondary))'}} contentStyle={{background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px'}} />
+                  <Bar dataKey="avgScore" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="card" style={{ background: 'var(--bg-secondary)' }}>
-          <h3 className="mb-4">Placement Readiness Tracking</h3>
-          <div className="flex" style={{ flexDirection: 'column', gap: '1rem' }}>
-             <p className="text-muted mb-2">Percentage of students categorized as "Industry Ready" (Score &gt; 75%) over time.</p>
-             <div className="table-container pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                <table>
-                   <thead>
-                      <tr><th>Month</th><th>Ready %</th><th>Growth</th></tr>
-                   </thead>
-                   <tbody>
-                      <tr><td>January</td><td>42%</td><td className="text-success">+2%</td></tr>
-                      <tr><td>February</td><td>48%</td><td className="text-success">+6%</td></tr>
-                      <tr><td>March</td><td>55%</td><td className="text-success">+7%</td></tr>
-                      <tr><td>April</td><td>62%</td><td className="text-success">+7%</td></tr>
-                   </tbody>
-                </table>
-             </div>
-          </div>
-        </div>
+        <Card className="bg-secondary/20 border-border/50 flex flex-col">
+          <CardHeader>
+            <CardTitle>Placement Readiness Tracking</CardTitle>
+            <CardDescription>Percentage of students categorized as "Industry Ready" (Score &gt; 75%) over time.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-between">
+            <div className="rounded-md border border-border/50 overflow-hidden">
+               <Table>
+                  <TableHeader className="bg-secondary/30">
+                     <TableRow>
+                        <TableHead>Month</TableHead>
+                        <TableHead>Ready %</TableHead>
+                        <TableHead className="text-right">Growth</TableHead>
+                     </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                     <TableRow>
+                        <TableCell>January</TableCell><TableCell>42%</TableCell><TableCell className="text-right text-green-400 font-medium">+2%</TableCell>
+                     </TableRow>
+                     <TableRow>
+                        <TableCell>February</TableCell><TableCell>48%</TableCell><TableCell className="text-right text-green-400 font-medium">+6%</TableCell>
+                     </TableRow>
+                     <TableRow>
+                        <TableCell>March</TableCell><TableCell>55%</TableCell><TableCell className="text-right text-green-400 font-medium">+7%</TableCell>
+                     </TableRow>
+                     <TableRow>
+                        <TableCell>April</TableCell><TableCell>62%</TableCell><TableCell className="text-right text-green-400 font-medium">+7%</TableCell>
+                     </TableRow>
+                  </TableBody>
+               </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
     </div>

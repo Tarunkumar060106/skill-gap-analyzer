@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, X } from 'lucide-react';
+import { UploadCloud, X, Clock } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function Verify() {
   const { user, requestVerification, logoutUser } = useAuth();
@@ -42,56 +44,69 @@ export default function Verify() {
 
   if(user?.verificationStatus === 'pending') {
     return (
-      <div className="card glass-panel text-center" style={{ maxWidth: 600, margin: '2rem auto', padding: '3rem' }}>
-        <h2 className="mb-4">Verification Pending</h2>
-        <p className="text-muted mb-6">Your ID is under review. You will gain full access once verified.</p>
-        <button onClick={() => navigate('/restricted')} className="btn-primary">Go to Dashboard</button>
-      </div>
+      <Card className="max-w-xl mx-auto mt-8 p-12 text-center bg-secondary/20 border-border/50">
+        <Clock className="w-16 h-16 mx-auto text-orange-400 mb-6" />
+        <CardTitle className="text-2xl mb-4">Verification Pending</CardTitle>
+        <CardDescription className="text-lg mb-8">
+          Your ID is under review. You will gain full access once verified.
+        </CardDescription>
+        <Button size="lg" onClick={() => navigate('/restricted')}>Go to Dashboard</Button>
+      </Card>
     );
   }
 
   return (
-    <div className="card glass-panel" style={{ maxWidth: 600, margin: '0 auto' }}>
-      <h2 className="mb-4">Verify Your Student Identity</h2>
-      <p className="text-muted mb-6">Upload your college ID before accessing tests. We accept JPG and PNG formats.</p>
-
-      {!preview ? (
-        <div 
-          className="file-upload-area"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current.click()}
-        >
-          <UploadCloud size={48} className="text-accent mb-4 mx-auto" style={{ color: 'var(--accent-primary)' }} />
-          <p>Drag and drop your ID card here</p>
-          <p className="text-sm text-muted mt-2">or click to browse</p>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleChange} 
-            hidden 
-            accept="image/jpeg, image/png"
-          />
-        </div>
-      ) : (
-        <div className="file-preview">
-          <img src={preview} alt="ID Preview" />
-          <button className="file-remove" onClick={() => {setFile(null); setPreview(null);}}>
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      <div className="flex gap-4 mt-6">
-        <button 
+    <Card className="max-w-xl mx-auto bg-secondary/20 border-border/50">
+      <CardHeader>
+        <CardTitle className="text-2xl">Verify Your Student Identity</CardTitle>
+        <CardDescription>
+          Upload your college ID before accessing tests. We accept JPG and PNG formats.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!preview ? (
+          <div 
+            className="border-2 border-dashed border-primary/30 rounded-xl p-12 text-center cursor-pointer hover:bg-primary/5 transition-colors"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current.click()}
+          >
+            <UploadCloud size={48} className="text-primary mb-4 mx-auto" />
+            <p className="font-medium text-lg mb-2">Drag and drop your ID card here</p>
+            <p className="text-sm text-muted-foreground">or click to browse</p>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleChange} 
+              hidden 
+              accept="image/jpeg, image/png"
+            />
+          </div>
+        ) : (
+          <div className="relative rounded-xl overflow-hidden border border-border bg-secondary/30 p-2">
+            <img src={preview} alt="ID Preview" className="w-full h-auto rounded-lg object-contain max-h-[400px]" />
+            <Button 
+              variant="destructive" 
+              size="icon" 
+              className="absolute top-4 right-4 rounded-full shadow-lg"
+              onClick={(e) => { e.stopPropagation(); setFile(null); setPreview(null); }}
+            >
+              <X size={16} />
+            </Button>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter className="flex gap-4 pt-2">
+        <Button 
           onClick={handleSubmit} 
           disabled={!file || loading} 
-          className="btn-primary flex-1 items-center justify-center"
+          size="lg"
+          className="flex-1"
         >
           {loading ? 'Submitting...' : 'Submit for Verification'}
-        </button>
-        <button onClick={logoutUser} className="btn-secondary">Save and Logout</button>
-      </div>
-    </div>
+        </Button>
+        <Button variant="outline" size="lg" onClick={logoutUser}>Logout</Button>
+      </CardFooter>
+    </Card>
   );
 }

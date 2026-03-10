@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserCircle } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -14,52 +20,56 @@ export default function Profile() {
   };
 
   return (
-    <div className="card glass-panel" style={{ maxWidth: 800, margin: '0 auto' }}>
-      <div className="flex items-center gap-6 mb-8 border-b pb-6" style={{ borderColor: 'var(--border-color)' }}>
-        <div className="avatar" style={{ width: 80, height: 80, fontSize: '2.5rem', background: 'var(--accent-secondary)' }}>
+    <Card className="max-w-3xl mx-auto p-6 md:p-8 border-none bg-secondary/20">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-8 border-b border-border/50 pb-8 text-center md:text-left">
+        <div className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold bg-primary/20 text-primary shrink-0">
           {(user?.fullName || user?.name || 'U').charAt(0).toUpperCase()}
         </div>
-        <div>
-          <h2>{user?.fullName || user?.name}</h2>
-          <p className="text-secondary">{user?.email}</p>
-          <div className="mt-2 flex gap-2">
-            <span className={`badge badge-${user?.verificationStatus}`}>{user?.verificationStatus?.toUpperCase() || 'VERIFIED'}</span>
-            <span className="badge" style={{ background: 'rgba(102, 252, 241, 0.1)', color: 'var(--accent-primary)' }}>{user?.department || 'CS'} - {user?.year || '3rd'} Year</span>
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold mb-1">{user?.fullName || user?.name}</h2>
+          <p className="text-muted-foreground mb-4">{user?.email}</p>
+          <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+            <Badge variant={user?.verificationStatus === 'verified' ? 'default' : 'secondary'} className={user?.verificationStatus === 'verified' ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : ''}>
+              {user?.verificationStatus?.toUpperCase() || 'VERIFIED'}
+            </Badge>
+            <Badge variant="outline" className="border-primary/50 text-primary bg-primary/10">
+              {user?.department || 'CS'} - {user?.year || '3rd'} Year
+            </Badge>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="grid grid-cols-2">
-         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-           <label className="form-label">Full Name</label>
-           <input type="text" className="form-control" defaultValue={user?.fullName || user?.name} disabled />
+      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <div className="space-y-2 md:col-span-2">
+           <Label>Full Name</Label>
+           <Input type="text" defaultValue={user?.fullName || user?.name} disabled />
          </div>
-         <div className="form-group">
-           <label className="form-label">Register Number</label>
-           <input type="text" className="form-control" defaultValue={user?.regNo} disabled />
+         <div className="space-y-2">
+           <Label>Register Number</Label>
+           <Input type="text" defaultValue={user?.regNo} disabled />
          </div>
-         <div className="form-group">
-           <label className="form-label">Department</label>
-           <input type="text" className="form-control" defaultValue={user?.department} disabled />
+         <div className="space-y-2">
+           <Label>Department</Label>
+           <Input type="text" defaultValue={user?.department} disabled />
          </div>
          
-         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-           <label className="form-label">Technical Skills (Comma separated)</label>
-           <input type="text" className="form-control" value={techSkills} onChange={e => setTechSkills(e.target.value)} />
+         <div className="space-y-2 md:col-span-2">
+           <Label>Technical Skills (Comma separated)</Label>
+           <Input type="text" value={techSkills} onChange={e => setTechSkills(e.target.value)} />
          </div>
-         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-           <label className="form-label">Soft Skills (Comma separated)</label>
-           <input type="text" className="form-control" value={softSkills} onChange={e => setSoftSkills(e.target.value)} />
+         <div className="space-y-2 md:col-span-2">
+           <Label>Soft Skills (Comma separated)</Label>
+           <Input type="text" value={softSkills} onChange={e => setSoftSkills(e.target.value)} />
          </div>
-         <div className="form-group" style={{ gridColumn: 'span 2' }}>
-           <label className="form-label">Career Goals</label>
-           <textarea className="form-control" rows="3" value={goals} onChange={e => setGoals(e.target.value)}></textarea>
+         <div className="space-y-2 md:col-span-2">
+           <Label>Career Goals</Label>
+           <Textarea rows={3} value={goals} onChange={e => setGoals(e.target.value)} />
          </div>
 
-         <div style={{ gridColumn: 'span 2', marginTop: '1rem', textAlign: 'right' }}>
-            <button type="submit" className="btn-primary">Save Changes</button>
+         <div className="md:col-span-2 pt-4 text-right">
+            <Button type="submit" size="lg">Save Changes</Button>
          </div>
       </form>
-    </div>
+    </Card>
   );
 }
