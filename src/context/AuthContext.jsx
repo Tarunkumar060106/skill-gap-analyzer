@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getCurrentUser, login, logout, register, updateUserVerification } from '../services/api';
+import { getCurrentUser, login, logout, register, updateUserVerification, uploadIdCard } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -44,9 +44,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const requestVerification = async (file) => {
-    // Actually handle file upload in component and just update status here
-    // or pass through
-    await updateUserVerification(user.userId, 'dummy-file-id');
+    const { url } = await uploadIdCard(file);
+    await updateUserVerification(user.id, null, url);
     await checkUser();
   };
 

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/ProtectedRoute'; // not used? replacing logic below.
 import Layout from './components/Layout';
 
 import Home from './pages/Home';
@@ -9,14 +9,17 @@ import Signup from './pages/Signup';
 import Verify from './pages/Verify';
 import RestrictedDashboard from './pages/RestrictedDashboard';
 import StudentDashboard from './pages/StudentDashboard';
-import TestSetup from './pages/TestSetup';
-import TestPage from './pages/TestPage';
-import TestResults from './pages/TestResults';
+
 import Profile from './pages/Profile';
 import MentorDashboard from './pages/MentorDashboard';
 import MentorVerifications from './pages/MentorVerifications';
 import Reports from './pages/Reports';
 import LearningPlan from './pages/LearningPlan';
+import Lesson from './pages/Lesson';
+import Leaderboard from './pages/Leaderboard';
+import TestSetup from './pages/TestSetup';
+import SkillTest from './pages/SkillTest';
+import TestResult from './pages/TestResult';
 
 const PrivateRoute = ({ children, requireVerified = true, requireMentor = false }) => {
   const { user, loading } = useAuth();
@@ -42,6 +45,43 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
+          {/* Gamified Full-Screen Routes (Verified Student) */}
+          <Route path="/learn" element={
+            <PrivateRoute>
+              <LearningPlan />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/lesson/:id" element={
+            <PrivateRoute>
+              <Lesson />
+            </PrivateRoute>
+          } />
+
+          <Route path="/leaderboard" element={
+            <PrivateRoute>
+              <Leaderboard />
+            </PrivateRoute>
+          } />
+
+          <Route path="/test-setup" element={
+            <PrivateRoute>
+              <TestSetup />
+            </PrivateRoute>
+          } />
+
+          <Route path="/test/:categoryId" element={
+            <PrivateRoute>
+              <SkillTest />
+            </PrivateRoute>
+          } />
+
+          <Route path="/results" element={
+            <PrivateRoute>
+              <TestResult />
+            </PrivateRoute>
+          } />
+
           {/* Authenticated Routes with Sidebar */}
           <Route element={<Layout />}>
             {/* Restricted (Unverified Student) */}
@@ -63,34 +103,10 @@ function App() {
               </PrivateRoute>
             } />
 
-            {/* Full Student Dash (Verified) */}
+            {/* Standard Dashboard view */}
             <Route path="/dashboard" element={
               <PrivateRoute>
                 <StudentDashboard />
-              </PrivateRoute>
-            } />
-            
-            <Route path="/test-setup" element={
-              <PrivateRoute>
-                <TestSetup />
-              </PrivateRoute>
-            } />
-            
-            <Route path="/test" element={
-              <PrivateRoute>
-                <TestPage />
-              </PrivateRoute>
-            } />
-            
-            <Route path="/results" element={
-              <PrivateRoute>
-                <TestResults />
-              </PrivateRoute>
-            } />
-            
-            <Route path="/learn" element={
-              <PrivateRoute>
-                <LearningPlan />
               </PrivateRoute>
             } />
 
