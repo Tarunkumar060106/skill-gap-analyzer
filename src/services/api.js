@@ -87,6 +87,21 @@ export const uploadIdCard = async (file) => {
   return { $id: 'file-' + Date.now(), url: `http://localhost:5000${data.url}` };
 };
 
+export const uploadResume = async (file) => {
+  const formData = new FormData();
+  formData.append('resume', file);
+
+  const response = await fetch(`${API_BASE_URL}/upload/resume`, {
+    method: 'POST',
+    headers: getFormHeaders(),
+    body: formData,
+  });
+  if (!response.ok) throw new Error('Upload failed');
+  
+  const data = await response.json();
+  return { url: `http://localhost:5000${data.url}` };
+};
+
 export const updateUserVerification = async (userId, fileId, fileUrl) => {
   // If uploadIdCard returned url, we pass it here
   const response = await fetch(`${API_BASE_URL}/verify`, {
@@ -96,6 +111,17 @@ export const updateUserVerification = async (userId, fileId, fileUrl) => {
   });
   if (!response.ok) throw new Error('Failed to update verification');
   return true;
+};
+
+export const updateUserProfile = async (profileData) => {
+  const response = await fetch(`${API_BASE_URL}/user/profile`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(profileData),
+  });
+  if (!response.ok) throw new Error('Failed to update profile');
+  const user = await response.json();
+  return user;
 };
 
 // Mentor actions
@@ -129,6 +155,35 @@ export const reviewVerification = async (userId, status) => {
   return true;
 };
 
+export const getStudents = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/students`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch students');
+  const users = await response.json();
+  
+  return users.map(user => ({
+    $id: user.id,
+    userId: user.id,
+    fullName: user.name,
+    regNo: user.regNo,
+    department: user.department,
+    verificationStatus: user.verificationStatus,
+    idCardUrl: user.idCardUrl ? (user.idCardUrl.startsWith('http') ? user.idCardUrl : `http://localhost:5000${user.idCardUrl}`) : 'https://via.placeholder.com/300x200?text=No+ID+Card',
+    createdAt: user.createdAt
+  }));
+};
+
+export const getMentorStats = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch statistics');
+  return await response.json();
+};
+
 // Test / Database
 export const getFullTest = async (testId) => {
   const response = await fetch(`${API_BASE_URL}/tests/${testId}`, {
@@ -158,13 +213,30 @@ export const saveTestResult = async (data) => {
   const savedTest = await response.json();
   return { ...savedTest, $id: savedTest.id };
 };
-
+// Tests
 export const getTestResults = async (userId) => {
-  const response = await fetch(`${API_BASE_URL}/tests`, {
-    method: 'GET',
+  const response = await fetch(`${API_BASE_URL}/tests/results`, {
     headers: getHeaders(),
   });
-  if (!response.ok) throw new Error('Failed to fetch test results');
-  const tests = await response.json();
-  return tests.map(test => ({ ...test, $id: test.id }));
+  if (!response.ok) throw new Error('Failed to load test results');
+  // Temporary fix since backend API endpoint expects userId in some formats but returning array
+  return await response.json();
+};
+
+export const getStudentDashboardStats = async () => {
+  const response = await fetch(`${API_BASE_URL}/student/dashboard`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to load dashboard stats');
+  return await response.json();
+};
+
+export const saveLearningProgress = async (lessonId) => {
+  const response = await fetch(`${API_BASE_URL}/learning/progress`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ lessonId })
+  });
+  if (!response.ok) throw new Error('Failed to save learning progress');
+  return await response.json();
 };
