@@ -1,6 +1,6 @@
-import { Filter, Download, FileSpreadsheet } from 'lucide-react';
+import { Filter, Download, FileSpreadsheet, BarChart3, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,8 +20,13 @@ export default function Reports() {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border/50 pb-6">
         <div>
-          <h2 className="text-3xl font-bold mb-1">Analytics & Reports</h2>
-          <p className="text-muted-foreground">Export detailed skill gap analysis data</p>
+          <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+             <div className="p-2 bg-primary/10 text-primary rounded-xl">
+               <BarChart3 size={28} />
+             </div>
+             Analytics & Reports
+          </h2>
+          <p className="text-muted-foreground ml-1">Export detailed skill gap analysis data and track cohort progress.</p>
         </div>
         
         <div className="flex flex-wrap gap-3">
@@ -47,10 +52,18 @@ export default function Reports() {
             <div className="h-[300px] w-full min-w-0">
               <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <BarChart data={mockDeptData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                  <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" width={120} />
-                  <Tooltip cursor={{fill: 'hsl(var(--secondary))'}} contentStyle={{background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px'}} />
-                  <Bar dataKey="avgScore" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `${v}%`} />
+                  <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" width={120} tick={{fill: 'hsl(var(--foreground))'}} />
+                  <Tooltip 
+                     cursor={{fill: 'hsl(var(--secondary))'}} 
+                     contentStyle={{background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px'}}
+                     formatter={(value) => [`${value}%`, 'Average Score']}
+                  />
+                  <Bar dataKey="avgScore" radius={[0, 4, 4, 0]}>
+                    {mockDeptData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.avgScore > 70 ? 'hsl(var(--primary))' : 'hsl(var(--destructive))'} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

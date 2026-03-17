@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, FileCheck2, UserCircle, LogOut, BookOpen, BarChart3, Users, FileText, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, FileCheck2, UserCircle, LogOut, BookOpen, BarChart3, Users, UserCheck, FileText, ChevronDown } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -21,7 +21,8 @@ export default function Layout() {
 
   const menuItems = isMentor ? [
     { name: 'Dashboard', path: '/mentor', icon: LayoutDashboard },
-    { name: 'Pending Verifications', path: '/mentor/verifications', icon: Users },
+    { name: 'Students', path: '/mentor/students', icon: Users },
+    { name: 'Pending Verifications', path: '/mentor/verifications', icon: UserCheck },
     { name: 'Reports', path: '/mentor/reports', icon: FileText },
   ] : (isVerified ? [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },

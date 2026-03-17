@@ -13,6 +13,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import Profile from './pages/Profile';
 import MentorDashboard from './pages/MentorDashboard';
 import MentorVerifications from './pages/MentorVerifications';
+import MentorStudents from './pages/MentorStudents';
 import Reports from './pages/Reports';
 import LearningPlan from './pages/LearningPlan';
 import Lesson from './pages/Lesson';
@@ -114,6 +115,11 @@ function App() {
             <Route path="/mentor" element={
               <PrivateRoute requireMentor={true} requireVerified={false}>
                 <MentorDashboard />
+              </PrivateRoute>
+            } />
+            <Route path="/mentor/students" element={
+              <PrivateRoute requireMentor={true} requireVerified={false}>
+                <MentorStudents />
               </PrivateRoute>
             } />
             <Route path="/mentor/verifications" element={
