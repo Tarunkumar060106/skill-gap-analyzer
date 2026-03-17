@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getPendingVerifications, reviewVerification } from '../services/api';
+import { getPendingVerifications, reviewVerification, getMentorStats } from '../services/api';
 import { Users, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,13 +10,18 @@ import { Button } from "@/components/ui/button";
 export default function MentorDashboard() {
   const { user } = useAuth();
   const [pending, setPending] = useState([]);
+  const [stats, setStats] = useState({ totalStudents: 0, pendingVerifications: 0, avgReadiness: 0 });
   const [loading, setLoading] = useState(true);
 
-  const fetchPending = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const data = await getPendingVerifications();
-      setPending(data);
+      const [pendingData, statsData] = await Promise.all([
+         getPendingVerifications(),
+         getMentorStats()
+      ]);
+      setPending(pendingData);
+      setStats(statsData);
     } catch(e) {
       console.error(e);
     } finally {
@@ -25,14 +30,14 @@ export default function MentorDashboard() {
   };
 
   useEffect(() => {
-    fetchPending();
+    fetchDashboardData();
   }, []);
 
   const handleReview = async (userId, status) => {
     try {
        await reviewVerification(userId, status);
-       await fetchPending();
-       alert('Verification '+ status);
+       await fetchDashboardData();
+       // remove generic alert in favor of UI state but kept for simple feedback right now
     } catch(e) {
        console.error(e);
     }
@@ -47,7 +52,7 @@ export default function MentorDashboard() {
            </div>
            <div>
               <p className="text-muted-foreground text-sm font-medium">Total Students</p>
-              <h3 className="text-3xl font-bold">1,248</h3>
+              <h3 className="text-3xl font-bold">{stats.totalStudents}</h3>
            </div>
         </Card>
         <Card className="flex items-center gap-4 p-6 bg-secondary/20 border-none">
@@ -56,7 +61,7 @@ export default function MentorDashboard() {
            </div>
            <div>
               <p className="text-muted-foreground text-sm font-medium">Avg Placement Readiness</p>
-              <h3 className="text-3xl font-bold text-green-400">68%</h3>
+              <h3 className="text-3xl font-bold text-green-400">{stats.avgReadiness}%</h3>
            </div>
         </Card>
         <Card className="flex items-center gap-4 p-6 bg-secondary/20 border-none">
@@ -65,7 +70,7 @@ export default function MentorDashboard() {
            </div>
            <div>
               <p className="text-muted-foreground text-sm font-medium">Pending Verifications</p>
-              <h3 className="text-3xl font-bold text-orange-400">{pending.length}</h3>
+              <h3 className="text-3xl font-bold text-orange-400">{stats.pendingVerifications}</h3>
            </div>
         </Card>
       </div>
