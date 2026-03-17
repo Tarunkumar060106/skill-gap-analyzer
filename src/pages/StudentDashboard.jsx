@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getTestResults } from '../services/api';
+import { getTestResults, getStudentDashboardStats } from '../services/api';
 import { Link } from 'react-router-dom';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { FileCheck2, UserCircle, Target, Activity, Sparkles, TrendingUp, Award, ArrowRight } from 'lucide-react';
@@ -11,26 +11,23 @@ import { Button } from "@/components/ui/button";
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [results, setResults] = useState([]);
+  const [skillData, setSkillData] = useState([]);
 
   useEffect(() => {
     async function loadData() {
       if(user) {
         try {
-          const res = await getTestResults(user.userId);
+          const [res, stats] = await Promise.all([
+            getTestResults(user.userId),
+            getStudentDashboardStats()
+          ]);
           setResults(res);
+          setSkillData(stats.skillData || []);
         } catch(e) {}
       }
     }
     loadData();
   }, [user]);
-
-  const skillData = [
-    { subject: 'React', A: 80, fullMark: 100 },
-    { subject: 'Node.js', A: 65, fullMark: 100 },
-    { subject: 'DB Design', A: 90, fullMark: 100 },
-    { subject: 'System Architecture', A: 45, fullMark: 100 },
-    { subject: 'Soft Skills', A: 70, fullMark: 100 },
-  ];
 
   return (
     <div className="space-y-8 flex-1 pb-8">
