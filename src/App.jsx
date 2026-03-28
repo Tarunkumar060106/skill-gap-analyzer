@@ -21,6 +21,7 @@ import Leaderboard from './pages/Leaderboard';
 import TestSetup from './pages/TestSetup';
 import SkillTest from './pages/SkillTest';
 import TestResult from './pages/TestResult';
+import AIInterview from './pages/AIInterview';
 
 const PrivateRoute = ({ children, requireVerified = true, requireMentor = false }) => {
   const { user, loading } = useAuth();
@@ -80,6 +81,12 @@ function App() {
           <Route path="/results" element={
             <PrivateRoute>
               <TestResult />
+            </PrivateRoute>
+          } />
+
+          <Route path="/ai-interview" element={
+            <PrivateRoute>
+              <AIInterview />
             </PrivateRoute>
           } />
 

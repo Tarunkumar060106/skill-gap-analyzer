@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, FileCheck2, UserCircle, LogOut, BookOpen, BarChart3, Users, UserCheck, FileText, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, FileCheck2, UserCircle, LogOut, BookOpen, BarChart3, Users, UserCheck, FileText, ChevronDown, Bot } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -30,6 +30,7 @@ export default function Layout() {
     { name: 'Learn', path: '/learn', icon: BookOpen },
     { name: 'Profile', path: '/profile', icon: UserCircle },
     { name: 'Results', path: '/results', icon: BarChart3 },
+    { name: 'AI Interview', path: '/ai-interview', icon: Bot },
   ] : [
     { name: 'Upload ID', path: '/verify', icon: FileCheck2 },
     { name: 'Profile', path: '/profile', icon: UserCircle },
