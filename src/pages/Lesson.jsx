@@ -5,6 +5,8 @@ import { X, Check, ArrowRight, Play, BookOpen, Settings, Zap, Lightbulb, AlertTr
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Editor from '@monaco-editor/react';
+import { saveLearningProgress } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Enhanced Mock Lesson Content
 const LESSON_DATA = {
@@ -62,6 +64,7 @@ const LANGUAGE_TEMPLATES = {
 export default function Lesson() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { loadUser } = useAuth();
   
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -81,7 +84,7 @@ export default function Lesson() {
   const chunk = LESSON_DATA.chunks[currentChunkIndex];
   const progress = ((currentChunkIndex) / LESSON_DATA.chunks.length) * 100;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setIsChecking(false);
     setSelectedAnswer(null);
     setIsCorrect(null);
@@ -93,6 +96,12 @@ export default function Lesson() {
       setCurrentChunkIndex(prev => prev + 1);
     } else {
       // Award XP & Complete
+      try {
+        await saveLearningProgress(id || 'l1');
+        await loadUser(); // Refresh user state to get updated COMPLETED_LESSONS string
+      } catch (err) {
+        console.error('Failed to save progress:', err);
+      }
       navigate('/learn');
     }
   };

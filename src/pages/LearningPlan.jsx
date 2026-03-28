@@ -14,20 +14,21 @@ import {
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 
-// Mock Data for the Gamified Path
-const PATH_LEVELS = [
-  { id: 'l1', type: 'lesson', title: 'Basics of Programming', status: 'completed', icon: CheckCircle },
-  { id: 'l2', type: 'lesson', title: 'Data Structures Intro', status: 'completed', icon: CheckCircle },
-  { id: 'l3', type: 'practice', title: 'Array Practice', status: 'active', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-500', border: 'border-yellow-600' },
-  { id: 'l4', type: 'lesson', title: 'Linked Lists', status: 'locked', icon: Lock },
-  { id: 'l5', type: 'checkpoint', title: 'Algorithms Checkpoint', status: 'locked', icon: Trophy, color: 'text-purple-500', bg: 'bg-purple-500', border: 'border-purple-600' },
-  { id: 'l6', type: 'lesson', title: 'System Design', status: 'locked', icon: Lock }
+// Base Data for the Gamified Path (Status is determined dynamically)
+const BASE_LEVELS = [
+  { id: 'l1', type: 'lesson', title: 'Basics of Programming', icon: CheckCircle },
+  { id: 'l2', type: 'lesson', title: 'Data Structures Intro', icon: CheckCircle },
+  { id: 'l3', type: 'practice', title: 'Array Practice', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-500', border: 'border-yellow-600' },
+  { id: 'l4', type: 'lesson', title: 'Linked Lists', icon: Lock },
+  { id: 'l5', type: 'checkpoint', title: 'Algorithms Checkpoint', icon: Trophy, color: 'text-purple-500', bg: 'bg-purple-500', border: 'border-purple-600' },
+  { id: 'l6', type: 'lesson', title: 'System Design', icon: Lock }
 ];
 
 export default function LearningPlan() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [pathLevels, setPathLevels] = useState([]);
   
   // Mock Stats
   const streak = 12;
@@ -35,10 +36,32 @@ export default function LearningPlan() {
   const health = 5; // representing hearts/lives
 
   useEffect(() => {
-    // Simulate loading user progress
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
+    // Generate dynamic path based on user progress string
+    let completedIds = [];
+    if (user?.techSkills && user.techSkills.includes('COMPLETED_LESSONS:')) {
+       try {
+           const match = user.techSkills.match(/COMPLETED_LESSONS:\[(.*?)\]/);
+           if (match && match[1]) {
+               completedIds = match[1].split(',');
+           }
+       } catch (e) {}
+    }
+
+    let foundActive = false;
+    const dynamicLevels = BASE_LEVELS.map(level => {
+       if (completedIds.includes(level.id)) {
+           return { ...level, status: 'completed' };
+       } else if (!foundActive) {
+           foundActive = true;
+           return { ...level, status: 'active' };
+       } else {
+           return { ...level, status: 'locked' };
+       }
+    });
+
+    setPathLevels(dynamicLevels);
+    setLoading(false);
+  }, [user]);
 
   const handleNodeClick = (level) => {
     if (level.status !== 'locked') {
@@ -98,7 +121,7 @@ export default function LearningPlan() {
            </div>
 
            {/* Nodes */}
-           {PATH_LEVELS.map((level, i) => {
+           {pathLevels.map((level, i) => {
              // Zig-zag offset
              const offsetX = i % 2 === 0 ? '-3rem' : '3rem';
              const isCenter = level.type === 'checkpoint';

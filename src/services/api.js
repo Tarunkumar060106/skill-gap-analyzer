@@ -184,6 +184,15 @@ export const getMentorStats = async () => {
   return await response.json();
 };
 
+export const getTopPerformers = async () => {
+  const response = await fetch(`${API_BASE_URL}/admin/top-performers`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch top performers');
+  return await response.json();
+};
+
 // Test / Database
 export const getFullTest = async (testId) => {
   const response = await fetch(`${API_BASE_URL}/tests/${testId}`, {
@@ -238,5 +247,41 @@ export const saveLearningProgress = async (lessonId) => {
     body: JSON.stringify({ lessonId })
   });
   if (!response.ok) throw new Error('Failed to save learning progress');
+  return await response.json();
+};
+
+export const sendInterviewMessage = async (message, transcript, subject) => {
+  const response = await fetch(`${API_BASE_URL}/interview/chat`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ message, transcript, subject })
+  });
+  if (!response.ok) throw new Error('Failed to send message');
+  return await response.json();
+};
+
+export const finishInterview = async (transcript, subject) => {
+  const response = await fetch(`${API_BASE_URL}/interview/finish`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ transcript, subject })
+  });
+  if (!response.ok) throw new Error('Failed to finish interview');
+  return await response.json();
+};
+
+export const getInterviewResults = async () => {
+  const response = await fetch(`${API_BASE_URL}/interview/results`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to load interview results');
+  return await response.json();
+};
+
+export const getLeaderboard = async () => {
+  const response = await fetch(`${API_BASE_URL}/leaderboard`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to load leaderboard');
   return await response.json();
 };

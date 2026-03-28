@@ -12,6 +12,7 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const [results, setResults] = useState([]);
   const [skillData, setSkillData] = useState([]);
+  const [stats, setStats] = useState({ percentile: '...', rank: '...' });
 
   useEffect(() => {
     async function loadData() {
@@ -23,6 +24,7 @@ export default function StudentDashboard() {
           ]);
           setResults(res);
           setSkillData(stats.skillData || []);
+          setStats({ percentile: stats.percentile, rank: stats.rank });
         } catch(e) {}
       }
     }
@@ -42,7 +44,11 @@ export default function StudentDashboard() {
             <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.fullName?.split(' ')[0] || user?.name || 'Student'}!</h1>
           </div>
           <p className="text-muted-foreground max-w-lg">
-            You're currently in the top <span className="text-primary font-bold">15%</span> of your department. Keep up the great work and complete your pending learning modules to boost your placement readiness.
+            {stats.percentile !== '...' ? (
+              <>You're currently in the top <span className="text-primary font-bold">{stats.percentile}%</span> of your department. Keep up the great work!</>
+            ) : (
+              <>Analyze your performance and boost your placement readiness by taking more tests.</>
+            )}
           </p>
         </div>
         <div className="relative z-10 shrink-0">
