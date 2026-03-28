@@ -13,17 +13,23 @@ export default function Login() {
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEmail(email)) {
+      return setError('Please enter a valid email address');
+    }
+
     try {
       setError('');
       await loginUser(email, password);
-      // Wait, what role is it? We can't immediately know here synchronously, 
-      // but App.jsx protected route handles redirect. Since we aren't inside ProtectedRoute, we navigate.
-      // Easiest is to navigate to /dashboard, ProtectedRoute will catch it and bounce to restricted if needed.
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to log in. Check credentials.');
+      // Use a generic error message for security
+      setError('Invalid email or password. Please try again.');
     }
   };
 
@@ -38,7 +44,7 @@ export default function Login() {
             <strong>Student:</strong> student@test.com / password
           </p>
         </div>
-        {error && <div className="text-destructive font-semibold text-center mb-4">{error}</div>}
+        {error && <div className="text-destructive font-semibold text-center mb-4 p-3 bg-destructive/10 rounded-lg">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -48,6 +54,7 @@ export default function Login() {
               required 
               value={email}
               onChange={e => setEmail(e.target.value)}
+              placeholder="example@test.com"
             />
           </div>
           <div className="space-y-2">
