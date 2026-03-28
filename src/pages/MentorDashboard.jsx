@@ -1,27 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getPendingVerifications, reviewVerification, getMentorStats } from '../services/api';
+import { getPendingVerifications, reviewVerification, getMentorStats, getTopPerformers } from '../services/api';
 import { Users, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function MentorDashboard() {
   const { user } = useAuth();
   const [pending, setPending] = useState([]);
   const [stats, setStats] = useState({ totalStudents: 0, pendingVerifications: 0, avgReadiness: 0 });
+  const [topPerformers, setTopPerformers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [pendingData, statsData] = await Promise.all([
+      const [pendingData, statsData, performersData] = await Promise.all([
          getPendingVerifications(),
-         getMentorStats()
+         getMentorStats(),
+         getTopPerformers()
       ]);
       setPending(pendingData);
       setStats(statsData);
+      setTopPerformers(performersData);
     } catch(e) {
       console.error(e);
     } finally {
@@ -105,7 +109,32 @@ export default function MentorDashboard() {
                       <TableCell>{p.regNo}</TableCell>
                       <TableCell>{p.department}</TableCell>
                       <TableCell>
-                         <a href={p.idCardUrl || '#'} target="_blank" rel="noreferrer" className="text-primary hover:underline font-semibold">View ID</a>
+                         <Dialog>
+                           <DialogTrigger asChild>
+                             <Button variant="link" className="text-primary p-0 h-auto font-semibold hover:underline">
+                               View ID
+                             </Button>
+                           </DialogTrigger>
+                           <DialogContent className="sm:max-w-[700px] border-border/50 bg-background/95 backdrop-blur-sm">
+                             <DialogHeader className="border-b border-border/50 pb-4 mb-4 text-left">
+                                <DialogTitle className="text-xl font-bold">Identity Verification Document</DialogTitle>
+                                <DialogDescription>
+                                  Student ID Proof: <span className="font-semibold text-primary">{p.fullName}</span> ({p.regNo})
+                                </DialogDescription>
+                             </DialogHeader>
+                             <div className="flex justify-center items-center py-4 bg-secondary/10 rounded-lg overflow-hidden border border-border/50">
+                                <img 
+                                  src={p.idCardUrl} 
+                                  alt={`ID proof for ${p.fullName}`} 
+                                  className="max-w-full max-h-[70vh] object-contain rounded-md shadow-2xl"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'https://via.placeholder.com/600x400?text=ID+Proof+Not+Available';
+                                  }}
+                                />
+                             </div>
+                           </DialogContent>
+                         </Dialog>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-orange-400 border-orange-400/50 bg-orange-400/10">Pending</Badge>
@@ -141,20 +170,25 @@ export default function MentorDashboard() {
                     </TableRow>
                  </TableHeader>
                  <TableBody>
-                    <TableRow>
-                       <TableCell className="text-green-400 font-bold">#1</TableCell>
-                       <TableCell className="font-medium">Alex Johnson</TableCell>
-                       <TableCell>98%</TableCell>
-                       <TableCell>MERN Stack</TableCell>
-                       <TableCell><Badge variant="default" className="bg-green-500/10 text-green-400 border-none">Ready</Badge></TableCell>
-                    </TableRow>
-                    <TableRow>
-                       <TableCell className="text-green-400 font-bold">#2</TableCell>
-                       <TableCell className="font-medium">Samantha Lee</TableCell>
-                       <TableCell>95%</TableCell>
-                       <TableCell>Backend Engineering</TableCell>
-                       <TableCell><Badge variant="default" className="bg-green-500/10 text-green-400 border-none">Ready</Badge></TableCell>
-                    </TableRow>
+                    {topPerformers.length > 0 ? topPerformers.map((p, i) => (
+                      <TableRow key={p.userId + i}>
+                         <TableCell className="text-green-400 font-bold">#{i + 1}</TableCell>
+                         <TableCell className="font-medium">{p.fullName}</TableCell>
+                         <TableCell>{p.score}%</TableCell>
+                         <TableCell>{p.testName}</TableCell>
+                         <TableCell>
+                           <Badge variant="default" className="bg-green-500/10 text-green-400 border-none">
+                             {p.score >= 90 ? 'Ready' : 'Near-Ready'}
+                           </Badge>
+                         </TableCell>
+                      </TableRow>
+                    )) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          No top performers identified yet.
+                        </TableCell>
+                      </TableRow>
+                    )}
                  </TableBody>
               </Table>
             </div>

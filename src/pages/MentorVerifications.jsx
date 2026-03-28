@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function MentorVerifications() {
   const [pending, setPending] = useState([]);
@@ -103,16 +104,38 @@ export default function MentorVerifications() {
                                  <span className="text-xs text-muted-foreground">{p.regNo} • {p.department}</span>
                               </div>
                            </TableCell>
-                           <TableCell>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-8 gap-2 font-semibold"
-                                onClick={() => window.open(p.idCardUrl, '_blank')}
-                              >
-                                 <ExternalLink size={14} /> VIEW DOC
-                              </Button>
-                           </TableCell>
+                            <TableCell>
+                               <Dialog>
+                                 <DialogTrigger asChild>
+                                   <Button 
+                                     variant="outline" 
+                                     size="sm" 
+                                     className="h-8 gap-2 font-semibold"
+                                   >
+                                      <ExternalLink size={14} /> VIEW DOC
+                                   </Button>
+                                 </DialogTrigger>
+                                 <DialogContent className="sm:max-w-[700px] border-border/50 bg-background/95 backdrop-blur-sm">
+                                   <DialogHeader className="border-b border-border/50 pb-4 mb-4 text-left">
+                                      <DialogTitle className="text-xl font-bold">Identity Verification Document</DialogTitle>
+                                      <DialogDescription>
+                                        Student ID Proof: <span className="font-semibold text-primary">{p.fullName}</span> ({p.regNo})
+                                      </DialogDescription>
+                                   </DialogHeader>
+                                   <div className="flex justify-center items-center py-4 bg-secondary/10 rounded-lg overflow-hidden border border-border/50">
+                                      <img 
+                                        src={p.idCardUrl} 
+                                        alt={`ID proof for ${p.fullName}`} 
+                                        className="max-w-full max-h-[70vh] object-contain rounded-md shadow-2xl"
+                                        onError={(e) => {
+                                          e.target.onerror = null;
+                                          e.target.src = 'https://via.placeholder.com/600x400?text=ID+Proof+Not+Available';
+                                        }}
+                                      />
+                                   </div>
+                                 </DialogContent>
+                               </Dialog>
+                            </TableCell>
                            <TableCell className="text-muted-foreground text-sm">
                               {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Today'}
                            </TableCell>
