@@ -50,7 +50,7 @@ export default function Reports() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full min-w-0">
-              <ResponsiveContainer width="100%" height="100%" debounce={100}>
+              <ResponsiveContainer width="100%" height="100%" debounce={100} minWidth={0} minHeight={0}>
                 <BarChart data={mockDeptData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                   <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `${v}%`} />
                   <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" width={120} tick={{fill: 'hsl(var(--foreground))'}} />

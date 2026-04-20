@@ -28,8 +28,9 @@ export default function Layout() {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Test', path: '/test-setup', icon: FileCheck2 },
     { name: 'Learn', path: '/learn', icon: BookOpen },
+    { name: 'Leaderboard', path: '/leaderboard', icon: BarChart3 },
     { name: 'Profile', path: '/profile', icon: UserCircle },
-    { name: 'Results', path: '/results', icon: BarChart3 },
+    { name: 'Results', path: '/results', icon: FileText },
     { name: 'AI Interview', path: '/ai-interview', icon: Bot },
   ] : [
     { name: 'Upload ID', path: '/verify', icon: FileCheck2 },

@@ -1,58 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Play, BookOpen, Settings, Zap, Lightbulb, AlertTriangle, Info } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Editor from '@monaco-editor/react';
-import { saveLearningProgress } from '../services/api';
+import { saveLearningProgress, getFullLesson } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-
-// Enhanced Mock Lesson Content
-const LESSON_DATA = {
-  title: "Array Mastery: Two Pointers",
-  xpReward: 150,
-  chunks: [
-    {
-      type: 'theory',
-      title: 'The Two Pointer Technique',
-      content: 'The two pointer technique is a foundational algorithmic pattern used to solve array problems efficiently, often reducing time complexity from O(n^2) to O(n).\n\nInstead of iterating with nested loops, we use two separate pointers (e.g., `left` and `right`) that traverse the array from different positions, typically meeting in the middle or moving in the same direction based on specific conditions.'
-    },
-    {
-      type: 'quiz',
-      title: 'Scenario: E-commerce Sorting',
-      question: 'You are building an e-commerce platform. You have a sorted array of product prices. The marketing team wants to find two distinct products whose combined price exactly matches a given target budget to offer a "Bundle Deal". Which approach is the most efficient?',
-      options: [
-        'Iterate through every possible pair of prices and sum them (O(n^2)).',
-        'Use the two-pointer technique: one pointer at the start, one at the end, moving them based on the sum compared to the target (O(n)).',
-        'Use binary search for every element to find its complement (O(n log n)).',
-        'Store all sums in a hash map first, then look up the target (O(n)).'
-      ],
-      correctAnswer: 1,
-      explanation: 'Because the array is already sorted, the two-pointer technique is optimal. You place `left` at index 0 and `right` at the last index. If the sum is too small, move `left` up. If it is too large, move `right` down. This requires evaluating at most n pairs, achieving O(n) time and O(1) space.'
-    },
-    {
-      type: 'coding',
-      title: 'Algorithm Design: Two Sum II',
-      description: 'You are given a 1-indexed array of integers `numbers` that is already sorted in non-decreasing order. Find two numbers such that they add up to a specific `target` number. Let these two numbers be `numbers[index1]` and `numbers[index2]`. Return the indices (1-indexed) as an integer array `[index1, index2]` of length 2.',
-      scenario: 'You are building the backend for the "Bundle Deal" feature mentioned previously.',
-      constraints: [
-        '2 <= numbers.length <= 3 * 10^4',
-        '-1000 <= numbers[i] <= 1000',
-        'numbers is sorted in non-decreasing order.',
-        'The tests are generated such that there is exactly one solution.'
-      ],
-      testCases: [
-         { input: 'numbers = [2,7,11,15], target = 9', expected: '[1, 2]' },
-         { input: 'numbers = [2,3,4], target = 6', expected: '[1, 3]' },
-         { input: 'numbers = [-1,0], target = -1', expected: '[1, 2]' }
-      ],
-      solution: {
-        javascript: 'function twoSum(numbers, target) {\n    let left = 0;\n    let right = numbers.length - 1;\n    \n    while (left < right) {\n        const sum = numbers[left] + numbers[right];\n        if (sum === target) {\n            return [left + 1, right + 1];\n        } else if (sum < target) {\n            left++;\n        } else {\n            right--;\n        }\n    }\n    return [];\n}'
-      }
-    }
-  ]
-};
 
 const LANGUAGE_TEMPLATES = {
   javascript: 'function twoSum(numbers, target) {\n  // Write your code here using the two-pointer technique\n  \n}',
@@ -66,6 +20,8 @@ export default function Lesson() {
   const navigate = useNavigate();
   const { loadUser } = useAuth();
   
+  const [lessonData, setLessonData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -81,8 +37,26 @@ export default function Lesson() {
   const [testResults, setTestResults] = useState([]);
   const editorRef = useRef(null);
 
-  const chunk = LESSON_DATA.chunks[currentChunkIndex];
-  const progress = ((currentChunkIndex) / LESSON_DATA.chunks.length) * 100;
+  useEffect(() => {
+    async function fetchLesson() {
+      try {
+        setLoading(true);
+        const data = await getFullLesson(id || 'c7');
+        setLessonData(data);
+      } catch (err) {
+        console.error('Failed to fetch lesson:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLesson();
+  }, [id]);
+
+  if (loading) return <div className="fixed inset-0 bg-white flex items-center justify-center font-bold text-primary animate-pulse">Loading Lesson...</div>;
+  if (!lessonData) return <div className="fixed inset-0 bg-white flex items-center justify-center font-bold text-red-500">Lesson Not Found.</div>;
+
+  const chunk = lessonData.chunks[currentChunkIndex];
+  const progress = ((currentChunkIndex) / lessonData.chunks.length) * 100;
 
   const handleNext = async () => {
     setIsChecking(false);
@@ -92,13 +66,13 @@ export default function Lesson() {
     setTestResults([]);
     setShowExplanation(false);
     
-    if (currentChunkIndex < LESSON_DATA.chunks.length - 1) {
+    if (currentChunkIndex < lessonData.chunks.length - 1) {
       setCurrentChunkIndex(prev => prev + 1);
     } else {
       // Award XP & Complete
       try {
-        await saveLearningProgress(id || 'l1');
-        await loadUser(); // Refresh user state to get updated COMPLETED_LESSONS string
+        await saveLearningProgress(id);
+        await loadUser(); // Refresh user state
       } catch (err) {
         console.error('Failed to save progress:', err);
       }
@@ -166,7 +140,7 @@ export default function Lesson() {
             <Progress value={progress} className="h-4 rounded-full bg-slate-100 [&>div]:bg-green-500" />
          </div>
          <div className="flex font-bold text-slate-500 items-center gap-1">
-            <Zap size={20} className="text-yellow-500 fill-yellow-500" /> <span className="text-slate-800">{LESSON_DATA.xpReward} XP</span>
+            <Zap size={20} className="text-yellow-500 fill-yellow-500" /> <span className="text-slate-800">{lessonData.xpReward} XP</span>
          </div>
       </div>
 

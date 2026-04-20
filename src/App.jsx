@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute'; // not used? replacing logic below.
 import Layout from './components/Layout';
+import ProctoringMonitor from './components/ProctoringMonitor';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -22,6 +23,8 @@ import TestSetup from './pages/TestSetup';
 import SkillTest from './pages/SkillTest';
 import TestResult from './pages/TestResult';
 import AIInterview from './pages/AIInterview';
+import ScenarioSandbox from './pages/ScenarioSandbox';
+import ScenarioReport from './pages/ScenarioReport';
 
 const PrivateRoute = ({ children, requireVerified = true, requireMentor = false }) => {
   const { user, loading } = useAuth();
@@ -41,6 +44,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ProctoringMonitor />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -87,6 +91,18 @@ function App() {
           <Route path="/ai-interview" element={
             <PrivateRoute>
               <AIInterview />
+            </PrivateRoute>
+          } />
+
+          <Route path="/scenario/sandbox" element={
+            <PrivateRoute>
+              <ScenarioSandbox />
+            </PrivateRoute>
+          } />
+
+          <Route path="/scenario/report" element={
+            <PrivateRoute>
+              <ScenarioReport />
             </PrivateRoute>
           } />
 

@@ -1,6 +1,9 @@
 import { useAuth } from '../context/AuthContext';
 import { AlertTriangle, Clock, ShieldX, UserCircle, UploadCloud } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function RestrictedDashboard() {
   const { user } = useAuth();

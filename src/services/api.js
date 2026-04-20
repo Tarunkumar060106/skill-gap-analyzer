@@ -240,6 +240,22 @@ export const getStudentDashboardStats = async () => {
   return await response.json();
 };
 
+export const getLessons = async () => {
+  const response = await fetch(`${API_BASE_URL}/lessons`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to load lessons');
+  return await response.json();
+};
+
+export const getFullLesson = async (lessonId) => {
+  const response = await fetch(`${API_BASE_URL}/lessons/${lessonId}`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to load lesson content');
+  return await response.json();
+};
+
 export const saveLearningProgress = async (lessonId) => {
   const response = await fetch(`${API_BASE_URL}/learning/progress`, {
     method: 'POST',
@@ -283,5 +299,116 @@ export const getLeaderboard = async () => {
     headers: getHeaders(),
   });
   if (!response.ok) throw new Error('Failed to load leaderboard');
+  return await response.json();
+};
+
+// ─── Exam Session API ──────────────────────────────────────────────────────
+
+export const startExamSession = async () => {
+  const response = await fetch(`${API_BASE_URL}/exam/session/start`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to start exam session');
+  return await response.json();
+};
+
+export const getExamQuestions = async () => {
+  const response = await fetch(`${API_BASE_URL}/exam/questions`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch exam questions');
+  return await response.json();
+};
+
+export const evaluateCodingChallenge = async (problem, code) => {
+  const response = await fetch(`${API_BASE_URL}/exam/evaluate-code`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ problem, code }),
+  });
+  if (!response.ok) throw new Error('Failed to evaluate coding challenge');
+  return await response.json();
+};
+
+export const logSessionViolation = async (sessionId, message, type = 'tab_switch') => {
+  try {
+    await fetch(`${API_BASE_URL}/exam/session/${sessionId}/violation`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify({ message, type }),
+    });
+  } catch (_) {
+    // Non-fatal — don't block the test if logging fails
+  }
+};
+
+export const completeExamSession = async (sessionId, { totalScore, sectionScores, answers, violations }) => {
+  const response = await fetch(`${API_BASE_URL}/exam/session/submit`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ sessionId, totalScore, sectionScores, answers, violations }),
+  });
+  if (!response.ok) throw new Error('Failed to complete session');
+  return await response.json();
+};
+
+export const getExamAttempts = async () => {
+  const response = await fetch(`${API_BASE_URL}/exam/attempts`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch attempts');
+  return await response.json();
+};
+
+export const getAllExamAttempts = async () => {
+  const response = await fetch(`${API_BASE_URL}/exam/attempts/all`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch all attempts');
+  return await response.json();
+};
+
+// ─── AI Sandbox API ────────────────────────────────────────────────────────
+
+export const getActiveScenario = async () => {
+  const response = await fetch(`${API_BASE_URL}/scenarios/active`, {
+    headers: getHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch scenario');
+  return await response.json();
+};
+
+export const startSandboxSession = async (scenarioId) => {
+  const response = await fetch(`${API_BASE_URL}/sandbox/start`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ scenarioId }),
+  });
+  if (!response.ok) throw new Error('Failed to start sandbox session');
+  return await response.json();
+};
+
+export const logSandboxTelemetry = async (sessionId, events) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sandbox/telemetry`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ sessionId, events }),
+    });
+    return await response.json();
+  } catch (err) {
+    console.error("Telemetry failed", err);
+  }
+};
+
+export const evaluateSandboxSession = async (sessionId, finalCode) => {
+  const response = await fetch(`${API_BASE_URL}/sandbox/evaluate`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ sessionId, finalCode }),
+  });
+  if (!response.ok) throw new Error('Failed to evaluate session');
   return await response.json();
 };

@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ChevronRight, Play, Terminal, HelpCircle, Code2, Check, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { QUESTION_BANK, buildExam } from '../data/questionBank';
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Clock, ChevronRight, Play, Terminal, HelpCircle, Code2, Check, Lock, ArrowRight, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { logSessionViolation, completeExamSession, getExamQuestions, evaluateCodingChallenge } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert';
 import ProctoringMonitor from '../components/ProctoringMonitor';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const LANGUAGE_TEMPLATES = {
   javascript: 'function solution(input) {\n  // Write your code here\n  return input;\n}',
@@ -20,9 +19,14 @@ const LANGUAGE_TEMPLATES = {
 
 export default function SkillTest() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   
-  // Session Key
+  // Session tracking (created by TestSetup before navigation)
+  const sessionId = location.state?.sessionId || null;
+  const attemptNumber = location.state?.attemptNumber || 1;
+
+  // Session local-storage key for crash recovery
   const sessionKey = `testSession_${user?.userId || 'guest'}`;
 
   const [exam, setExam] = useState(null);
@@ -45,46 +49,54 @@ export default function SkillTest() {
 
   // Initialize Exam & Restore Session
   useEffect(() => {
-    const fullExamData = buildExam(QUESTION_BANK);
-    setExam({
-      title: "Comprehensive Standardized Assessment",
-      sections: fullExamData.map(s => ({
-        ...s,
-        duration: s.duration || 600 // default 10 mins if not provided
-      }))
-    });
-
-    // Check for saved session
-    const savedSessionStr = localStorage.getItem(sessionKey);
-    let initialSectionIndex = 0;
-    let initialTimeLeft = fullExamData[0].duration || 600;
-    let initialIntermission = false;
-
-    if (savedSessionStr) {
+    const fetchExam = async () => {
       try {
-        const savedSession = JSON.parse(savedSessionStr);
-        setAnswers(savedSession.answers || {});
-        initialSectionIndex = savedSession.currentSectionIndex || 0;
-        initialIntermission = savedSession.showIntermission || false;
-        
-        // Ensure we don't restore a finished exam
-        if (initialSectionIndex >= fullExamData.length) {
-           initialSectionIndex = 0; 
-           initialIntermission = false;
-        } else {
-           initialTimeLeft = savedSession.timeLeft ?? (fullExamData[initialSectionIndex].duration || 600);
-        }
-        
-        setViolations(savedSession.violations || 0);
-      } catch (e) {
-        console.error("Failed to parse saved session", e);
-      }
-    }
+        const questions = await getExamQuestions();
+        const fullExamData = {
+          title: "Comprehensive Standardized Assessment",
+          sections: questions.map(s => ({
+            ...s,
+            duration: s.duration || (s.id === 'coding' ? 900 : 600)
+          }))
+        };
+        setExam(fullExamData);
 
-    setCurrentSectionIndex(initialSectionIndex);
-    setCurrentIndex(0); 
-    setTimeLeft(initialTimeLeft);
-    setShowIntermission(initialIntermission);
+        // Check for saved session AFTER exam is loaded
+        const savedSessionStr = localStorage.getItem(sessionKey);
+        let initialSectionIndex = 0;
+        let initialTimeLeft = fullExamData.sections[0].duration;
+        let initialIntermission = false;
+
+        if (savedSessionStr) {
+          try {
+            const savedSession = JSON.parse(savedSessionStr);
+            setAnswers(savedSession.answers || {});
+            initialSectionIndex = savedSession.currentSectionIndex || 0;
+            initialIntermission = savedSession.showIntermission || false;
+            
+            if (initialSectionIndex >= fullExamData.sections.length) {
+               initialSectionIndex = 0; 
+               initialIntermission = false;
+            } else {
+               initialTimeLeft = savedSession.timeLeft ?? fullExamData.sections[initialSectionIndex].duration;
+            }
+            
+            setViolations(savedSession.violations || 0);
+          } catch (e) {
+            console.error("Failed to parse saved session", e);
+          }
+        }
+
+        setCurrentSectionIndex(initialSectionIndex);
+        setCurrentIndex(0); 
+        setTimeLeft(initialTimeLeft);
+        setShowIntermission(initialIntermission);
+      } catch (err) {
+        console.error("Failed to fetch exam:", err);
+      }
+    };
+
+    fetchExam();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionKey]);
 
@@ -128,10 +140,13 @@ export default function SkillTest() {
     localStorage.removeItem(sessionKey);
   };
 
-  const handleViolationsChange = (count) => {
+  const handleViolationsChange = useCallback((count) => {
     setViolations(count);
-    saveSession();
-  };
+    // Also persist violation to the server session
+    if (sessionId) {
+      logSessionViolation(sessionId, `Tab/window switch detected (violation #${count})`, 'tab_switch');
+    }
+  }, [sessionId]);
 
   // Called when time is up or user manually submits the section
   const handleSectionEnd = useCallback(() => {
@@ -186,14 +201,16 @@ export default function SkillTest() {
     }, 1500);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setIsRunning(true); // Show loader for final evaluation
     let score = 0;
     let sectionScores = {};
     
-    exam.sections.forEach(section => {
+    // Process sections
+    for (const section of exam.sections) {
       if (!sectionScores[section.title]) sectionScores[section.title] = { total: 0, correct: 0 };
       
-      section.questions.forEach(q => {
+      for (const q of section.questions) {
         sectionScores[section.title].total += 10;
         
         if (q.type === 'mcq' || q.type === 'domain' || q.type === 'quant' || q.type === 'aptitude') {
@@ -202,19 +219,45 @@ export default function SkillTest() {
             sectionScores[section.title].correct += 10;
           }
         } else if (q.type === 'coding') {
-           if (answers[q.id] && answers[q.id].length > 50) {
-              score += 10;
-              sectionScores[section.title].correct += 10;
+           const studentCode = answers[q.id];
+           if (studentCode && studentCode.length > 50) {
+              try {
+                const aiResult = await evaluateCodingChallenge(q.text, studentCode);
+                const codingScore = (aiResult.overallScore / 100) * 10;
+                score += codingScore;
+                sectionScores[section.title].correct += codingScore;
+                sectionScores[section.title].aiFeedback = aiResult.feedback; // Capture feedback for results page
+              } catch (err) {
+                console.error("AI Evaluation failed, falling back to basic check:", err);
+                score += 5; // Partial credit for attempt if AI fails
+                sectionScores[section.title].correct += 5;
+              }
            }
         }
-      });
-    });
+      }
+    }
 
-    let totalQuestions = exam.sections.reduce((acc, sec) => acc + sec.questions.length, 0);
-    const finalScore = Math.min(100, (score / (totalQuestions * 10)) * 100);
+    const totalQuestions = exam.sections.reduce((acc, sec) => acc + sec.questions.length, 0);
+    const finalScore = Math.min(100, Math.round((score / (totalQuestions * 10)) * 100));
     
-    clearSession(); 
-    navigate('/results', { state: { score: finalScore, sectionScores, answers, violations } });
+    clearSession();
+
+    // Persist to Supabase via the tracked session
+    if (sessionId) {
+      try {
+        await completeExamSession(sessionId, {
+          totalScore: finalScore,
+          sectionScores,
+          answers,
+          violations,
+        });
+      } catch (err) {
+        console.error('Failed to save session result:', err);
+      }
+    }
+
+    setIsRunning(false);
+    navigate('/results', { state: { score: finalScore, sectionScores, answers, violations, sessionId, attemptNumber } });
   };
 
   if (!exam) return <div className="p-20 text-center text-primary font-bold mb-4 flex items-center justify-center min-h-screen">Compiling Assessment Modules...</div>;
@@ -294,7 +337,13 @@ export default function SkillTest() {
   const currentSection = exam.sections[currentSectionIndex];
   const currentQuestion = currentSection?.questions[currentIndex];
 
-  if (!currentQuestion) return null;
+  if (!exam.sections || exam.sections.length === 0) {
+    return <div className="p-20 text-center font-bold text-red-500 min-h-screen flex items-center justify-center">Error: No questions found. Please check database.</div>;
+  }
+
+  if (!currentQuestion) {
+    return <div className="p-20 text-center font-bold text-slate-500 min-h-screen flex items-center justify-center">Loading question or section is empty...</div>;
+  }
 
   const progress = ((currentIndex + 1) / currentSection.questions.length) * 100;
 
@@ -419,7 +468,14 @@ export default function SkillTest() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4 max-w-2xl">
-                    {currentQuestion.options.map((opt, i) => {
+                    {(() => {
+                      let opts = currentQuestion.options;
+                      if (typeof opts === 'string') {
+                        try { opts = JSON.parse(opts); } catch (e) { opts = []; }
+                      }
+                      if (!Array.isArray(opts)) opts = [];
+                      
+                      return opts.map((opt, i) => {
                       const isSelected = answers[currentQuestion.id] === String(i);
                       return (
                         <div 
@@ -441,7 +497,8 @@ export default function SkillTest() {
                           </span>
                         </div>
                       );
-                    })}
+                    });
+                    })()}
                   </div>
                 )}
               </motion.div>
